@@ -1,0 +1,9 @@
+<?php
+include('Classes/Project.php');
+include('Classes/NotFullProject.php');
+include('Functions/add.php');
+include('Functions/delete.php');
+include('Functions/edit.php');
+include('Functions/get.php');
+include('Functions/getOne.php');
+?>
