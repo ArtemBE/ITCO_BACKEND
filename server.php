@@ -1,10 +1,5 @@
 <?php
-// Устанавливаем заголовки для работы с JSON
 include('imports.php');
-
-/* file_put_contents('C:\Users\dorne\Desktop\Учеба\Чих пых куку\full', 'jellt'); */
-
-/* $handle = fopen($file, 'w'); // 'w' - режим записи (перезапись) */
 
 header("Access-Control-Allow-Origin: *");
 header("Content-Type: application/json");
@@ -12,11 +7,11 @@ header("Access-Control-Allow-Headers: *");
 header('Access-Control-Allow-Methods: *');
 header("Cache-Control: no-cache, must-revalidate");
 
-$host = 'localhost';       // Хост базы данных
-$port = 5432;              // Порт PostgreSQL
-$dbname = 'DataBasePHP'; // Название базы данных
-$user = 'postgres';      // Имя пользователя
-$password = '186739403';  // Пароль пользователя
+$host = 'localhost';
+$port = 5432;
+$dbname = 'DataBasePHP';
+$user = 'postgres';
+$password = '186739403';
 
 $buildPath = __DIR__ . '/build';
 $requestUri = $_SERVER['REQUEST_URI'];
@@ -24,20 +19,17 @@ $requestUri = $_SERVER['REQUEST_URI'];
 
 
 if (strpos($_SERVER['REQUEST_URI'], '/api/image') === 0) {
-    // Проверяем, что файл был загружен и ошибок не возникло
     if ($_SERVER['REQUEST_METHOD'] === 'POST'){
         if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
             $id = intval(substr($_SERVER['REQUEST_URI'], strrpos($_SERVER['REQUEST_URI'], '/')+1));
-            $uploadDir = 'image/'; // Папка для сохранения загруженных файлов
+            $uploadDir = 'build/image/';
             $fileExtension = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
-            $uploadFile = $uploadDir . $id . '.' . $fileExtension; // Полный путь к файлу
+            $uploadFile = $uploadDir . $id . '.' . $fileExtension;
 
-            // Создаем папку, если её не существует
             if (!is_dir($uploadDir)) {
                 mkdir($uploadDir, 0755, true);
             }
 
-            // Перемещаем файл из временной папки в целевую
             if (move_uploaded_file($_FILES['image']['tmp_name'], $uploadFile)) {
                 echo json_encode([
                     'status' => 'success',
@@ -47,7 +39,7 @@ if (strpos($_SERVER['REQUEST_URI'], '/api/image') === 0) {
                     'id' => substr($_SERVER['REQUEST_URI'], strrpos($_SERVER['REQUEST_URI'], '/')+1)
                 ]);
             } else {
-                http_response_code(500); // Устанавливаем HTTP-код ошибки
+                http_response_code(500);
                 echo json_encode([
                     'status' => 'error',
                     'message' => 'Failed to move uploaded file',
@@ -56,7 +48,7 @@ if (strpos($_SERVER['REQUEST_URI'], '/api/image') === 0) {
                 ]);
             }
         } else {
-            http_response_code(400); // Неправильный запрос
+            http_response_code(400);
             echo json_encode([
                 'status' => 'error',
                 'message' => 'No file uploaded or upload error occurred',
@@ -69,18 +61,17 @@ if (strpos($_SERVER['REQUEST_URI'], '/api/image') === 0) {
         $dec = json_decode(file_get_contents('php://input'), true);
         $id = $dec['id'] . '.jpg';
         if (isset($id) && !empty($id)) {
-            $filePath = 'image/' . basename($id);
+            $filePath = 'build/image/' . basename($id);
             if (file_exists($filePath)) {
-                // Пытаемся удалить файл
                 if (unlink($filePath)) {
-                    http_response_code(200); // OK
+                    http_response_code(200);
                     echo json_encode(['status' => 'success', 'message' => 'File deleted successfully']);
                 } else {
-                    http_response_code(500); // Internal Server Error
+                    http_response_code(500);
                     echo json_encode(['status' => 'error', 'message' => 'Failed to delete the file']);
                 }
             } else {
-                http_response_code(404); // Not Found
+                http_response_code(404);
                 echo json_encode(['status' => 'error', 'message' => 'File not found', 'id' => $id, 'dec' => $dec]);
             }
         }
@@ -137,8 +128,6 @@ else if (strpos($requestUri, '/api') === 0) {
         ]);
         echo $aaase;
     }else if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-        //$data = json_decode(file_get_contents('php://input'), true);
-        //$project_id = $data['project_id'];
         if ($_SERVER['REQUEST_URI'] === '/api'){
             echo json_encode(get());
         }
@@ -150,9 +139,15 @@ else if (strpos($requestUri, '/api') === 0) {
     exit;
 }
 
-//$filePath = $buildPath . $requestUri;
+$filePath = $buildPath . $requestUri;
 $imagePath = __DIR__ . $requestUri;
-if (file_exists($imagePath) && !is_dir($imagePath)) {
+if($requestUri==="/" || $requestUri==="" || strpos($requestUri, '/createProject') === 0){
+    $mimeType = mime_content_type($buildPath . '/index.html');
+    header("Content-Type: $mimeType");
+    readfile($buildPath . '/index.html');
+    exit;
+} 
+else if (/* file_exists($filePath) && !is_dir($filePath) */ true) {
     /* if(strpos($requestUri, '/static/css') === 0){
         header("Content-Type: text/css");
     }
@@ -160,9 +155,14 @@ if (file_exists($imagePath) && !is_dir($imagePath)) {
         $mimeType = mime_content_type($filePath);
         header("Content-Type: $mimeType");
     } */
-    $mimeType = mime_content_type($imagePath);
+    //echo $buildPath;
+    $mimeType = mime_content_type($filePath);
+    if(strpos($requestUri, '/static/css')===0){
+        $mimeType = 'text/css';
+    }
     header("Content-Type: $mimeType");
-    readfile($imagePath); // Отправляем файл
+    
+    readfile($filePath);
     exit;
 }
 
